@@ -37,10 +37,10 @@ rotating_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %
 logging.getLogger().addHandler(rotating_handler)
 
 # Creating the directory structure if it doesn't exist
-os.makedirs(os.path.join('app', 'data'), exist_ok=True)
+os.makedirs(os.path.join('/app', 'data'), exist_ok=True)
 
 # Creating the file path
-notified_item_file = os.path.join('app', 'data', 'notified_item.json')
+notified_item_file = os.path.join('/app', 'data', 'notified_item.json')
 
 
 def send_telegram_notification(text, photo_id):
