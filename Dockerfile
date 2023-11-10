@@ -2,7 +2,7 @@ FROM python:3.11-slim-bookworm
 
 LABEL maintainer="fahmula"
 
-RUN adduser pythonapp
+RUN adduser --no-create-home pythonapp
 
 WORKDIR /app
 
