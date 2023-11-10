@@ -23,7 +23,7 @@ EPISODE_PREMIERED_WITHIN_X_DAYS = int(os.environ.get("EPISODE_PREMIERED_WITHIN_X
 SEASON_ADDED_WITHIN_X_DAYS = int(os.environ.get("SEASON_ADDED_WITHIN_X_DAYS"))
 
 # Set up logging
-log_directory = 'app/log'
+log_directory = os.path.join('app', 'log')
 log_filename = os.path.join(log_directory, 'emby-telegram-notifier.log')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -36,8 +36,11 @@ rotating_handler.setLevel(logging.INFO)
 rotating_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 logging.getLogger().addHandler(rotating_handler)
 
-# Path for the JSON file to store notified item
-notified_item_file = 'app/data/notified_item.json'
+# Creating the directory structure if it doesn't exist
+os.makedirs(os.path.join('app', 'data'), exist_ok=True)
+
+# Creating the file path
+notified_item_file = os.path.join('app', 'data', 'notified_item.json')
 
 
 def send_telegram_notification(text, photo_id):
