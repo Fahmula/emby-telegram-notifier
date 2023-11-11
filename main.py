@@ -23,7 +23,7 @@ EPISODE_PREMIERED_WITHIN_X_DAYS = int(os.environ.get("EPISODE_PREMIERED_WITHIN_X
 SEASON_ADDED_WITHIN_X_DAYS = int(os.environ.get("SEASON_ADDED_WITHIN_X_DAYS"))
 
 # Set up logging
-log_directory = os.path.join('app', 'log')
+log_directory = os.path.join('log')
 log_filename = os.path.join(log_directory, 'emby-telegram-notifier.log')
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -37,10 +37,10 @@ rotating_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %
 logging.getLogger().addHandler(rotating_handler)
 
 # Creating the directory structure if it doesn't exist
-os.makedirs(os.path.join('/app', 'data'), exist_ok=True)
+os.makedirs(os.path.join('data'), exist_ok=True)
 
 # Creating the file path
-notified_item_file = os.path.join('/app', 'data', 'notified_item.json')
+notified_item_file = os.path.join('data', 'notified_item.json')
 
 
 def send_telegram_notification(text, photo_id):
@@ -133,8 +133,8 @@ def process_payload(item_id):
     item_details = get_item_details(item_id)
 
     # Check if 'Overview' is empty
-    if item_details['Items'][0]['Overview'] == '':
-        item_name = item_details['Items'][0]('Name')
+    if not item_details['Items'][0].get('Overview'):
+        item_name = item_details['Items'][0].get('Name')
         logging.info(f'Waiting 60s for {item_name} metadata')
         time.sleep(60)
         item_details = get_item_details(item_id)
