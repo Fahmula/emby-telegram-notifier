@@ -169,9 +169,10 @@ def process_payload(item_id):
             if trailer_url:
                 notification_message += f"\n\n[🎥]({trailer_url})[Trailer]({trailer_url})"
 
+            mark_item_as_notified(item_name, release_year)
+
             send_telegram_notification(notification_message, item_id)
 
-            mark_item_as_notified(item_name, release_year)
             logging.info(f"(Movie) {item_name} {release_year} notification was sent to Telegram!.")
             item_ids_to_process.remove(item_id)
             return "Movie notification was sent to Telegram"
@@ -202,9 +203,10 @@ def process_payload(item_id):
                 f"*Season* *{season_num}*\n\n{overview_to_use}\n\n"
             )
 
+            mark_item_as_notified(series_name_cleaned, season_name)
+
             send_telegram_notification(notification_message, season_id)
 
-            mark_item_as_notified(series_name_cleaned, season_name)
             item_ids_to_process.remove(item_id)
             logging.info(f'(Season) {series_name_cleaned} '
                          f'Season {season_num} notification sent to Telegram!')
@@ -218,19 +220,22 @@ def process_payload(item_id):
                     f"*New Episode Added*\n\n*Release Date*: {premiere_date}\n\n*Series*: {series_name_cleaned} *S*"
                     f"{season_num}*E*{season_epi}\n*Episode Title*: {item_name}\n\n{overview}\n\n"
                 )
+
+                mark_item_as_notified(series_name_cleaned, episode_stored)
+
                 response = send_telegram_notification(notification_message, season_id)
 
                 if response:
-                    mark_item_as_notified(series_name_cleaned, episode_stored)
                     item_ids_to_process.remove(item_id)
                     logging.info(f"(Episode) {series_name_cleaned} "
                                  f"S{season_num}E{season_epi} notification sent to Telegram!")
                     return "Notification sent to Telegram"
                 else:
+                    mark_item_as_notified(series_name_cleaned, episode_stored)
+
                     send_telegram_notification(notification_message, series_id)
                     logging.warning(f"(Episode) {series_name} season image does not exist, "
                                     f"falling back to series image")
-                    mark_item_as_notified(series_name_cleaned, episode_stored)
                     item_ids_to_process.remove(item_id)
                     logging.info(f"(Episode) {series_name_cleaned} "
                                  f"S{season_num}E{season_epi} notification sent to Telegram!")
