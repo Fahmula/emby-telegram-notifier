@@ -132,12 +132,25 @@ file_lock = threading.Lock()
 def process_payload(item_id):
     item_details = get_item_details(item_id)
 
-    # Check if 'Overview' is empty
+    # Check if 'Overview' is empty every 60s, with a timeout of 5 minutes
+    timeout_seconds = 300
+    start_time = time.time()
+
     if not item_details['Items'][0].get('Overview'):
-        item_name = item_details['Items'][0].get('Name')
-        logging.info(f'Waiting 60s for {item_name} metadata')
-        time.sleep(60)
-        item_details = get_item_details(item_id)
+        while True:
+            elapsed_time = time.time() - start_time
+            item_name = item_details['Items'][0].get('Name')
+
+            if elapsed_time >= timeout_seconds:
+                logging.warning(f'Timed out waiting for {item_name} metadata')
+                break
+
+            logging.info(f'Waiting 60s for {item_name} metadata')
+            time.sleep(60)
+            item_details = get_item_details(item_id)
+
+            if item_details['Items'][0].get('Overview'):
+                break
 
     item_type = item_details['Items'][0].get('Type', 'Unknown')
     item_name = item_details['Items'][0].get('Name', 'Unknown')
@@ -234,6 +247,7 @@ def process_payload(item_id):
                     mark_item_as_notified(series_name_cleaned, episode_stored)
 
                     send_telegram_notification(notification_message, series_id)
+
                     logging.warning(f"(Episode) {series_name} season image does not exist, "
                                     f"falling back to series image")
                     item_ids_to_process.remove(item_id)
