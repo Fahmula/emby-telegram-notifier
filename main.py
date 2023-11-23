@@ -140,12 +140,29 @@ def process_payload(item_id):
         while True:
             elapsed_time = time.time() - start_time
             item_name = item_details['Items'][0].get('Name')
+            item_type = item_details['Items'][0].get('Type', 'Unknown')
 
+            # Check if elapsed time exceeds the timeout
             if elapsed_time >= timeout_seconds:
-                logging.warning(f'Timed out waiting for {item_name} metadata')
+                if item_type == "Movie":
+                    logging.warning(f'Timed out waiting for {item_name} metadata')
+                else:
+                    # Assuming the item type is "Episode" if it's not "Movie"
+                    series_name = item_details['Items'][0].get('SeriesName', 'Unknown')
+                    season_epi = f"{item_details['Items'][0].get('IndexNumber', 'Unknown'):02}"
+                    season_num = f"{item_details['Items'][0].get('ParentIndexNumber', 'Unknown'):02}"
+                    logging.warning(f'Timed out waiting for {series_name} S{season_num}E{season_epi} metadata')
                 break
 
-            logging.info(f'Waiting 60s for {item_name} metadata')
+            # Check if it's a movie or episode
+            if item_type == "Movie":
+                logging.info(f'Waiting 60s for {item_name} metadata')
+            else:
+                series_name = item_details['Items'][0].get('SeriesName', 'Unknown')
+                season_epi = f"{item_details['Items'][0].get('IndexNumber', 'Unknown'):02}"
+                season_num = f"{item_details['Items'][0].get('ParentIndexNumber', 'Unknown'):02}"
+                logging.info(f'Waiting 60s for {series_name} S{season_num}E{season_epi} metadata')
+
             time.sleep(60)
             item_details = get_item_details(item_id)
 
@@ -203,7 +220,7 @@ def process_payload(item_id):
         season_overview = season_details['Items'][0].get('Overview', 'Unknown')
         series_details = get_item_details(series_id)
         series_overview = series_details['Items'][0].get('Overview', 'Unknown')
-        episode_stored = f'{season_num}{season_epi}'
+        episode_stored = f'S{season_num}E{season_epi}'
 
         # Check to see if it's a new season
         if (not item_already_notified(series_name_cleaned, season_name)
