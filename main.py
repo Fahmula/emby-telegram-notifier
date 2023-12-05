@@ -282,7 +282,26 @@ def process_payload(item_id):
 @app.route('/webhook', methods=['POST'])
 def emby_webhook():
     try:
+        # Try the first method
         payload = json.loads(dict(request.form)['data'])
+    except KeyError:
+        try:
+            # Try the second method
+            payload = json.loads(request.data)
+        except json.JSONDecodeError as json_err:
+            logging.error(f"JSON decoding error: {json_err}")
+            return "Error: Invalid JSON format", 400
+        except Exception as e:
+            logging.error(f"Error during payload processing: {str(e)}")
+            return f"Error: {str(e)}", 500
+    except json.JSONDecodeError as json_err:
+        logging.error(f"JSON decoding error: {json_err}")
+        return "Error: Invalid JSON format", 400
+    except Exception as e:
+        logging.error(f"Error: {str(e)}")
+        return f"Error: {str(e)}", 500
+
+    try:
         item_id = payload['Item']['Id']
 
         # Start a new thread to process the payload with a 1-minute delay
@@ -290,13 +309,13 @@ def emby_webhook():
         thread.start()
         return "OK"
 
-    except HTTPError as http_err:
-        logging.error(f"HTTP error occurred: {http_err}")
-        return str(http_err)
+    except KeyError as key_err:
+        logging.error(f"Key error occurred: {key_err}")
+        return f"Error: {str(key_err)}", 400
 
     except Exception as e:
         logging.error(f"Error: {str(e)}")
-        return f"Error: {str(e)}"
+        return f"Error: {str(e)}", 500
 
 
 if __name__ == "__main__":
