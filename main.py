@@ -42,6 +42,8 @@ os.makedirs(os.path.join('data'), exist_ok=True)
 # Creating the file path
 notified_item_file = os.path.join('data', 'notified_item.json')
 
+file_lock = threading.Lock()
+
 
 def send_telegram_notification(text, photo_id):
     base_photo_url = f"{EMBY_BASE_URL}/Items/{photo_id}/Images/Primary"
@@ -100,13 +102,13 @@ def load_notified_item():
     return set()
 
 
+notified_item = load_notified_item()
+
+
 def save_notified_item(notified_item_to_save):
     with file_lock:
         with open(notified_item_file, 'w') as file:
             json.dump(list(notified_item_to_save), file)
-
-
-notified_item = load_notified_item()
 
 
 def item_already_notified(item_name, release_year):
@@ -123,10 +125,6 @@ def mark_item_as_notified(item_name, release_year, max_entries=100):
         logging.info(f"Key '{oldest_key}' has been deleted from notified_Item")
 
     save_notified_item(notified_item)
-
-
-item_ids_to_process = []
-file_lock = threading.Lock()
 
 
 def process_payload(item_id):
@@ -204,12 +202,10 @@ def process_payload(item_id):
             send_telegram_notification(notification_message, item_id)
 
             logging.info(f"(Movie) {item_name} {release_year} notification was sent to Telegram!.")
-            item_ids_to_process.remove(item_id)
             return "Movie notification was sent to Telegram"
 
         else:
             logging.info(f"(Movie) {item_name} Notification Was Already Sent")
-            item_ids_to_process.remove(item_id)
             return "Notification Was Already Sent"
 
     if item_type == "Episode":
@@ -237,7 +233,6 @@ def process_payload(item_id):
 
             send_telegram_notification(notification_message, season_id)
 
-            item_ids_to_process.remove(item_id)
             logging.info(f'(Season) {series_name_cleaned} '
                          f'Season {season_num} notification sent to Telegram!')
             return 'New Season Added'
@@ -256,7 +251,6 @@ def process_payload(item_id):
                 response = send_telegram_notification(notification_message, season_id)
 
                 if response:
-                    item_ids_to_process.remove(item_id)
                     logging.info(f"(Episode) {series_name_cleaned} "
                                  f"S{season_num}E{season_epi} notification sent to Telegram!")
                     return "Notification sent to Telegram"
@@ -267,7 +261,6 @@ def process_payload(item_id):
 
                     logging.warning(f"(Episode) {series_name} season image does not exist, "
                                     f"falling back to series image")
-                    item_ids_to_process.remove(item_id)
                     logging.info(f"(Episode) {series_name_cleaned} "
                                  f"S{season_num}E{season_epi} notification sent to Telegram!")
                     return "Notification sent to Telegram (fallback)"
@@ -275,17 +268,14 @@ def process_payload(item_id):
             else:
                 logging.info(f"(Episode) {series_name} S{season_num}E{season_epi} "
                              f"was premiered more than {EPISODE_PREMIERED_WITHIN_X_DAYS} days ago")
-                item_ids_to_process.remove(item_id)
                 return 'Premiered more than x days ago'
 
         else:
             logging.info(f"(Episode) {series_name} S{season_num}E{season_epi} Notification Was Already Sent")
-            item_ids_to_process.remove(item_id)
             return 'Notification Was Already Sent'
 
     else:
         logging.error(f'Item type {item_type} not supported')
-        item_ids_to_process.remove(item_id)
         return "Item type not supported."
 
 
@@ -295,13 +285,9 @@ def emby_webhook():
         payload = json.loads(dict(request.form)['data'])
         item_id = payload['Item']['Id']
 
-        if item_id not in item_ids_to_process:
-            item_ids_to_process.append(item_id)
-
-            # Start a new thread to process the payload with a 1-minute delay
-            thread = threading.Thread(target=process_payload, args=(item_id,))
-            thread.start()
-            return "OK"
+        # Start a new thread to process the payload with a 1-minute delay
+        thread = threading.Thread(target=process_payload, args=(item_id,))
+        thread.start()
         return "OK"
 
     except HTTPError as http_err:
