@@ -1,0 +1,28 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Custom
+logs
+log
+data
+config
+desktop.ini
+*.json
+model
+*.prof
+*.austin
+*_backups
+test
+test.py
+venv*
+*.etaflag*
+*.gamingflag
+hardlinks.json
+output.txt
+*.exe
