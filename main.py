@@ -46,20 +46,24 @@ file_lock = threading.Lock()
 
 
 def send_telegram_notification(text, photo_id):
-    base_photo_url = f"{EMBY_BASE_URL}/Items/{photo_id}/Images/Primary"
+    base_photo_url = f"{EMBY_BASE_URL}/Items/{photo_id}/Images/Primary" if photo_id else None
 
     try:
-        image_response = requests.get(base_photo_url)
-        image = ('photo.jpg', image_response.content, 'image/jpeg')
-
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
         data = {
             "chat_id": TELEGRAM_CHAT_ID,
             "caption": text,
             "parse_mode": "Markdown"
         }
 
-        response = requests.post(url, data=data, files={'photo': image})
+        if photo_id:
+            image_response = requests.get(base_photo_url)
+            image = ('photo.jpg', image_response.content, 'image/jpeg')
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+            response = requests.post(url, data=data, files={'photo': image})
+        else:
+            url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+            data["text"] = text
+            response = requests.post(url, data=data)
 
         return response
 
@@ -300,6 +304,14 @@ def emby_webhook():
     except Exception as e:
         logging.error(f"Error: {str(e)}")
         return f"Error: {str(e)}", 500
+
+    # Check if payload is sample webhook
+    if payload["Title"] == "Test Notification":
+        server_name = payload['Server']["Name"]
+        version = payload['Server']["Version"]
+        notification_message = f"Success!\n\n*Server Name*: {server_name}\n\n*Server Version*: {version}"
+        send_telegram_notification(notification_message, None)
+        return "OK"
 
     try:
         item_id = payload['Item']['Id']

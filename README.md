@@ -51,8 +51,9 @@ If you have Docker and Docker Compose installed, you can use the provided `docke
 1. Go to Emby settings.
 2. Choose `Webhooks` and add a new webhook.
 3. Set the server to the Flask application's endpoint (e.g., `http://localhost:5000/webhook`).
-4. Under `Library`, select `New Media Added`.
-5. You can limit events to selected `Users`, but it's best to limit `Library` to `Movie & Shows`.
+4. You can `Send Test Webhook` to make sure every is working so far.
+5. Under `Library`, select `New Media Added`.
+6. You can limit events to selected `Users`, but it's best to limit `Library` to `Movie & Shows`.
 
 #### For Emby Server 4.8 or Higher:
 
@@ -61,8 +62,9 @@ If you have Docker and Docker Compose installed, you can use the provided `docke
 3. Select `Webhooks` as the notification type.
 4. Set the server to the Flask application's endpoint (e.g., `http://localhost:5000/webhook`).
 5. You can set `Request content type` to either `multipart/form-data` or `application/json`.
-6. Under `Library`, select `New Media Added`.
-7. You can limit events to selected `Users` and/or `Devices`, but it's best to limit `Library` to `Movie & Shows`.
+6. You can `Send Test Webhook` to make sure every is working so far.
+7. Under `Library`, select `New Media Added`.
+8. You can limit events to selected `Users` and/or `Devices`, but it's best to limit `Library` to `Movie & Shows`.
 
 
 #### Environment Variables Explanation:
