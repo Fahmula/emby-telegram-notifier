@@ -23,7 +23,7 @@ A simple Flask application that sends notifications to Telegram whenever new con
 1. Clone the repository.
 2. Install the requirements using `pip install -r requirements.txt`.
 3. Set up your environment variables. (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, EMBY_BASE_URL, EMBY_API_KEY, EPISODE_PREMIERED_WITHIN_X_DAYS, SEASON_ADDED_WITHIN_X_DAYS).
-4. Run the application using `python3 main.py`.
+4. Run the application using `python3 app.py`.
 
 ### Docker Installation
 
