@@ -203,8 +203,8 @@ def process_payload(item_id):
 
     if item_type == "Movie":
         if not item_already_notified(item_name, release_year):
-            runtime_ticks = item_details["Items"][0].get("RunTimeTicks", "Unknown")
-            runtime_sec = runtime_ticks // 10_000_000
+            runtime_ticks = item_details["Items"][0].get("RunTimeTicks")
+            runtime_sec = runtime_ticks // 10_000_000 if runtime_ticks is not None else "Unknown"
             hours, remainder = divmod(runtime_sec, 3600)
             minutes, seconds = divmod(remainder, 60)
             runtime = "{:02}:{:02}:{:02}".format(hours, minutes, seconds)
